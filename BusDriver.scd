@@ -1,3 +1,5 @@
+
+
 (
 f = value {
 	var dt = 1/s.sampleRate;
@@ -23,6 +25,7 @@ d.stop;
 d.run
 
 
+// the folowing is more stable, but won't run with a standard version of supercollider yet.
 (
 b = Bus.audio(s, 1);
 d = SimpleBusDriver(f, b, 512);
@@ -33,12 +36,4 @@ d.stop;
 
 
 d.run
-
-Done
-
-
-[ "/g_freeAll", 0 ]
-[ "/g_new", 0, 1, 1 ]
-
-s.nextNodeID
 
