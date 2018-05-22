@@ -1,0 +1,9 @@
+(
+	\name: 			"BusDriver",
+	\summary:		"A bridge between sclang routines and scsynth signals",
+	\author: 		"Julian Rohrhuber",
+	\organization: 	"Institute for Music and Media Duesseldorf",
+	\country: 		"Germany",
+	\since: 		"2018",
+	\version: 		"0.1"
+)
