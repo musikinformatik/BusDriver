@@ -57,7 +57,7 @@ SimpleBusDriver {
 		var id = server.nextNodeID;
 		var array = Array.fill(numFrames, func);
 		server.sendBundle(server.latency,
-			["/s_new", synthName, id, 1, groupID] ++  ["array", array].asOSCArgArray,
+			["/s_new", synthName, id, 1, groupID] ++  ["array", array, "out", bus].asOSCArgArray,
 			[12, id, running.binaryValue] // paused
 		);
 		^id
