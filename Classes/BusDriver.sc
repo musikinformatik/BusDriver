@@ -11,7 +11,7 @@ SimpleBusDriver {
 	var task, server, groupID;
 	var delta, halfBlockDur, synthName;
 
-	*new { |func, bus, numFrames = 512|
+	*new { |func, bus = 0, numFrames = 512|
 		^super.newCopyArgs(func, bus.asBus, numFrames).init
 	}
 
