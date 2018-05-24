@@ -12,7 +12,7 @@ SimpleBusDriver {
 	var delta, halfBlockDur, synthName;
 
 	*new { |func, bus, numFrames = 512|
-		^super.newCopyArgs(func, bus, numFrames).init
+		^super.newCopyArgs(func, bus.asBus, numFrames).init
 	}
 
 	init {

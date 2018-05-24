@@ -15,8 +15,7 @@ f = value {
 )
 
 (
-b = Bus.audio(s, 1);
-d = BusDriver(f, b, 512);
+d = BusDriver(f, numFrames: 512);
 d.run;
 )
 
@@ -27,8 +26,7 @@ d.run
 
 // the folowing is more stable, but won't run with a standard version of supercollider yet.
 (
-b = Bus.audio(s, 1);
-d = SimpleBusDriver(f, b, 512);
+d = SimpleBusDriver(f, numFrames: 512);
 d.run;
 )
 
