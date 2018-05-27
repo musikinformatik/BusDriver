@@ -70,14 +70,14 @@ SimpleBusDriver {
 	initSynths {
 		this.freeSynths;
 		server.sendMsg("/g_new", groupID, 1, 1);
-		this.addSynth(true);
+		this.addSynth(true); // add a synth that is not paused to ignite the chain
 		(initSynthNumber - 1).do { this.addSynth(false) };
 	}
 
 	resumeNextSynth {}
 
 	run {
-
+		this.stop;
 		task = Task {
 			this.initSynths;
 			loop {
@@ -195,20 +195,8 @@ BusDriver : SimpleBusDriver {
 		initSynthNumber.do { this.addSynth };
 	}
 
-	run {
-		this.stop;
-		task = Task {
-			this.initSynths;
-			loop {
-				this.addSynth;
-				this.resumeNextSynth;
-				this.prDelta.wait;
-			}
-		}.play(SystemClock);
-	}
-
 	freeSynths {
-		server.sendMsg("/g_freeAll", groupID);
+		super.freeSynths;
 		synths = [];
 	}
 
