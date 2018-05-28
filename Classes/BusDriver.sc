@@ -7,14 +7,14 @@ currently: audio rate and single channel only.
 
 SimpleBusDriver {
 
-	var <>func, <bus, <numFrames;
+	var <>func, <bus, <numFrames, <>latency;
 	var task, server, groupID;
 	var prDelta, sampleDur, halfBlockDur, synthName;
 
 	var <>initSynthNumber = 2;
 
-	*new { |func, bus = 0, numFrames = 512|
-		^super.newCopyArgs(func, bus.asBus, numFrames).init
+	*new { |func, bus = 0, numFrames = 512, latency|
+		^super.newCopyArgs(func, bus.asBus, numFrames, latency).init
 	}
 
 	init {
@@ -22,8 +22,8 @@ SimpleBusDriver {
 		if(server.serverRunning.not) {
 			Error("server % not running".format(server)).throw
 		};
+		latency = latency ?? { server.latency };
 		this.sendSynthDefs;
-		this.startGroup;
 		sampleDur = server.sampleRate.reciprocal;
 		halfBlockDur = server.options.blockSize * sampleDur * 0.1;
 	}
@@ -55,23 +55,27 @@ SimpleBusDriver {
 	addSynth { |running = false|
 		var id = server.nextNodeID;
 		var array = Array.fill(numFrames, func);
-		server.sendBundle(server.latency,
+		server.sendBundle(latency,
 			["/s_new", synthName, id, 1, groupID] ++  ["array", array, "out", bus].asOSCArgArray,
 			[12, id, running.binaryValue] // paused
 		);
 		^id
 	}
 
-	startGroup {
-		groupID = server.nextNodeID;
-		server.sendMsg("/g_new", groupID, 0, 1); // later, target, doneAction?
+	initGroup {
+		groupID = groupID ?? { server.nextNodeID };
+		server.sendMsg("/g_new", groupID, 1, 1);
+	}
+
+	addFirstSynth {
+		this.addSynth(true); // add a synth that is not paused to ignite the chain
 	}
 
 	initSynths {
 		this.freeSynths;
-		server.sendMsg("/g_new", groupID, 1, 1);
-		this.addSynth(true); // add a synth that is not paused to ignite the chain
-		(initSynthNumber - 1).do { this.addSynth(false) };
+		this.initGroup;
+		this.addFirstSynth;
+		initSynthNumber.do { this.addSynth(false) };
 	}
 
 	resumeNextSynth {}
@@ -89,8 +93,15 @@ SimpleBusDriver {
 	}
 
 	freeSynths {
-		server.sendMsg("/g_freeAll", groupID);
-		server.sendMsg("/n_free", groupID);
+		groupID !? {
+			server.sendBundle(server.latency,
+				['/error', -1],
+				["/g_freeAll", groupID],
+				["/n_free", groupID],
+				['/error', -2]
+			);
+			groupID = nil;
+		}
 	}
 
 	stop {
@@ -147,7 +158,7 @@ EventBusDriver : SimpleBusDriver {
 			dur
 		};
 
-		server.sendBundle(server.latency,
+		server.sendBundle(latency,
 			["/s_new", synthName, id, 1, groupID] ++  ["values", values, "times", times, "out", bus].asOSCArgArray,
 			[12, id, running.binaryValue] // paused
 		);
@@ -185,15 +196,11 @@ BusDriver : SimpleBusDriver {
 	resumeNextSynth {
 		var id = synths.removeAt(0);
 		if(id.isNil) { "BusDriver: underrun queue".warn } {
-			server.sendBundle(server.latency + halfBlockDur, [12, id, 1])
+			server.sendBundle(latency + halfBlockDur, [12, id, 1])
 		};
 	}
 
-	initSynths {
-		this.freeSynths;
-		server.sendMsg("/g_new", groupID, 1, 1);
-		initSynthNumber.do { this.addSynth };
-	}
+	addFirstSynth { } // nothing needed
 
 	freeSynths {
 		super.freeSynths;
