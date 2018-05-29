@@ -19,6 +19,11 @@ d = BusDriver(f, numFrames: 512);
 d.run;
 )
 
+(
+d = EventBusDriver({ (value: f.value, dur: 1) }, numFrames: 512);
+d.run;
+)
+
 d.stop;
 
 d.run
@@ -30,8 +35,11 @@ d = SimpleBusDriver(f, numFrames: 512);
 d.run;
 )
 
+
+(
+d = SimpleEventBusDriver({ (value: f.value, dur: 1) }, numFrames: 512);
+d.run;
+)
 d.stop;
 
-
-d.run
 
