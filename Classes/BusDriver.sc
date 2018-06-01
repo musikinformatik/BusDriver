@@ -5,13 +5,14 @@ currently: audio rate and single channel only.
 
 */
 
-SimpleBusDriver {
+BusDriver {
 
 	var <>func, <bus, <numFrames, <>latency;
-	var task, server, groupID;
+	var synths, task, nodeWatcher, server, groupID;
+
 	var prDelta, sampleDur, halfBlockDur, synthName;
 
-	var <>initSynthNumber = 2;
+	var <>queueMaxSize = 8, <>queueMinSize = 2;
 
 	*new { |func, bus = 0, numFrames = 512, latency|
 		^super.newCopyArgs(func, bus.asBus, numFrames, latency).init
@@ -59,6 +60,7 @@ SimpleBusDriver {
 			["/s_new", synthName, id, 1, groupID] ++  ["array", array, "out", bus].asOSCArgArray,
 			[12, id, running.binaryValue] // paused
 		);
+		synths.add(id);
 		^id
 	}
 
@@ -75,18 +77,16 @@ SimpleBusDriver {
 		this.freeSynths;
 		this.initGroup;
 		this.addFirstSynth;
-		initSynthNumber.do { this.addSynth(false) };
+		queueMinSize.do { this.addSynth(false) };
 	}
-
-	resumeNextSynth {}
 
 	run {
 		this.stop;
+		this.startListen;
 		task = Task {
 			this.initSynths;
 			loop {
-				this.addSynth;
-				this.resumeNextSynth;
+				if(synths.size < queueMaxSize) { this.addSynth };
 				this.prDelta.wait;
 			}
 		}.play(SystemClock);
@@ -101,13 +101,21 @@ SimpleBusDriver {
 				['/error', -2]
 			);
 			groupID = nil;
-		}
+		};
+		synths = Set.new
 	}
 
 	stop {
 		task.stop;
 		task = nil;
 		this.freeSynths;
+	}
+
+	startListen {
+		nodeWatcher = OSCFunc({ |msg|
+			var nodeID = msg[1];
+			synths.remove(nodeID);
+		}, "/n_end", server.addr, nil, [nil, groupID])
 	}
 
 	prDelta {
@@ -122,11 +130,9 @@ the function should return events with \value and \delta
 
 */
 
-EventBusDriver : SimpleBusDriver {
+EventBusDriver : BusDriver {
 
 	var nextDuration;
-
-
 
 	sendSynthDefs {
 
@@ -170,43 +176,5 @@ EventBusDriver : SimpleBusDriver {
 	}
 }
 
-
-/*
-
-Keeps a list of synths and does the resuming sclang side
-
-*/
-
-
-
-BusDriver : SimpleBusDriver {
-
-	var synths;
-
-
-	doneAction {
-		^Done.freeSelf
-	}
-
-	addSynth { |running = false|
-		var id = super.addSynth(running);
-		synths = synths.add(id);
-	}
-
-	resumeNextSynth {
-		var id = synths.removeAt(0);
-		if(id.isNil) { "BusDriver: underrun queue".warn } {
-			server.sendBundle(latency + halfBlockDur, [12, id, 1])
-		};
-	}
-
-	addFirstSynth { } // nothing needed
-
-	freeSynths {
-		super.freeSynths;
-		synths = [];
-	}
-
-}
 
 
