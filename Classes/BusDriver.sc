@@ -15,7 +15,7 @@ BusDriver {
 
 	var sampleDur, synthName;
 
-	var <>queueMaxSize = 25, <>queueMinSize = 20;
+	var <>queueSize = 20;
 
 	*new { |func, bus = 0, numFrames = 512, latency|
 		^super.newCopyArgs(func, bus.asBus, numFrames, latency).init
@@ -47,9 +47,7 @@ BusDriver {
 	appendSynth {
 		var size = synths.size;
 		var running = (size == 0);
-		if(size <= queueMaxSize) {
-			this.addSynth(running)
-		};
+		this.addSynth(running)
 	}
 
 
@@ -61,7 +59,7 @@ BusDriver {
 	initSynths {
 		this.freeSynths;
 		this.initGroup;
-		queueMinSize.do { this.appendSynth };
+		queueSize.do { this.appendSynth };
 	}
 
 	startListen {
