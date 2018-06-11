@@ -12,12 +12,25 @@ f = value {
 		z
 	}
 };
-)
 
-(
 d = BusDriver(f, numFrames: 512);
+//d.timeScale = 30;
+//d = EventBusDriver({ (value: f.value, dur: 1) }, numFrames: 512);
 d.run;
 )
+
+d.synths
+
+x = d.synths.maxItem;
+s.sendMsg("/n_run", d.synths.minItem, 1);
+d.synths.minItem;
+x
+
+d.synths.makeEmpty
+
+s.freeAll;
+
+d.stop;
 
 (
 d = EventBusDriver({ (value: f.value, dur: 1) }, numFrames: 512);
@@ -28,18 +41,6 @@ d.stop;
 
 d.run
 
+d.synths;
 
-// the folowing is more stable, but won't run with a standard version of supercollider yet.
-(
-d = SimpleBusDriver(f, numFrames: 512);
-d.run;
-)
-
-
-(
-d = SimpleEventBusDriver({ (value: f.value, dur: 1) }, numFrames: 512);
-d.run;
-)
-d.stop;
-
-
+s.sendMsg("/n_run", 1019, 1);
