@@ -107,7 +107,6 @@ BusDriver {
 			ReplaceOut.ar(out, signal)
 		}).load(server);
 
-		"written synthdef for % called %".format(this.class, synthName).postln;
 
 	}
 
@@ -153,7 +152,6 @@ EventBusDriver : BusDriver {
 			ReplaceOut.ar(out, signal)
 		}).load(server);
 
-		"written synthdef for % called %".format(this.class, synthName).postln;
 
 	}
 
